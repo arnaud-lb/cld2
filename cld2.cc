@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string>
 
-#include "compact_lang_det.h"
+#include "cld2/public/compact_lang_det.h"
 #include "cld2.h"
 
 const char* DetectLang(char *data, int length) {
