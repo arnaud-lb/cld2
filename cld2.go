@@ -13,10 +13,11 @@ import "C"
 import "unsafe"
 
 type Results struct {
-	Language   string
-	Summary    [3]Result
-	TextBytes  int
-	IsReliable bool
+	Language         string
+	Summary          [3]Result
+	TextBytes        int
+	IsReliable       bool
+	ValidPrefixBytes int
 }
 
 type Result struct {
@@ -50,7 +51,7 @@ func Detect(text string) string {
 	return lang
 }
 
-func DetectSummary(text string, isPlainText bool, allowExtendedLanguages bool, hints *Hints) *Results {
+func DetectSummaryCheckUTF8(text string, isPlainText bool, allowExtendedLanguages bool, hints *Hints) *Results {
 
 	cText := C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
@@ -71,8 +72,9 @@ func DetectSummary(text string, isPlainText bool, allowExtendedLanguages bool, h
 	var percent3 [3]C.int
 	var textBytes C.int
 	var isReliable C.int
+	var validPrefixBytes C.int
 
-	summaryLanguage := C.DetectLangSummary(
+	summaryLanguage := C.DetectLangSummaryCheckUTF8(
 		cText,
 		C.int(len(text)),
 		boolToCInt(isPlainText),
@@ -83,12 +85,14 @@ func DetectSummary(text string, isPlainText bool, allowExtendedLanguages bool, h
 		(*C.int)(unsafe.Pointer(&percent3[0])),
 		&textBytes,
 		&isReliable,
+		&validPrefixBytes,
 	)
 
 	results := &Results{
-		Language:   C.GoString(summaryLanguage),
-		IsReliable: cIntToBool(isReliable),
-		TextBytes:  int(textBytes),
+		Language:         C.GoString(summaryLanguage),
+		IsReliable:       cIntToBool(isReliable),
+		TextBytes:        int(textBytes),
+		ValidPrefixBytes: int(validPrefixBytes),
 	}
 
 	for i := 0; i < 3; i++ {

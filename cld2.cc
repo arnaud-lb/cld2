@@ -40,9 +40,9 @@ const char* DetectLang(char *data, int length) {
     return CLD2::LanguageCode(summary_lang);
 }
 
-const char* DetectLangSummary(char *data, int length, int is_plain_text, int allow_extended_lang, const char *tld_hint, const char *language_hint, const char **language3, int *percent3, int *text_bytes, int *is_reliable) {
+const char* DetectLangSummaryCheckUTF8(char *data, int length, int is_plain_text, int allow_extended_lang, const char *tld_hint, const char *language_hint, const char **language3, int *percent3, int *text_bytes, int *is_reliable, int *valid_prefix_bytes) {
 
-    CLD2::CLDHints cldhints = {NULL, NULL, 0, CLD2::UNKNOWN_LANGUAGE};
+    CLD2::CLDHints cldhints = {NULL, tld_hint, 0, CLD2::UNKNOWN_LANGUAGE};
     int flags = 0;
     CLD2::Language cld_language3[3];
     double normalized_score3[3];
@@ -60,7 +60,7 @@ const char* DetectLangSummary(char *data, int length, int is_plain_text, int all
 
     CLD2::Language summary_lang = CLD2::UNKNOWN_LANGUAGE;
 
-    summary_lang = CLD2::ExtDetectLanguageSummary(data, 
+    summary_lang = CLD2::ExtDetectLanguageSummaryCheckUTF8(data, 
             length,
             (bool) is_plain_text,
             &cldhints,
@@ -70,7 +70,8 @@ const char* DetectLangSummary(char *data, int length, int is_plain_text, int all
             normalized_score3,
             &resultchunkvector,
             text_bytes,
-            &cld_is_reliable);
+            &cld_is_reliable,
+            valid_prefix_bytes);
 
     for (i = 0; i < 3; i++) {
         language3[i] = CLD2::LanguageCode(cld_language3[i]);
